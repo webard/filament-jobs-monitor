@@ -33,7 +33,7 @@ class ListPendingJobs extends Page implements HasTable
 
     public function table(Table $table): Table
     {
-        $query = QueueJob::query();
+        $query = resolve(QueueJob::class)::query();
 
         if (config('filament-jobs-monitor.tenancy.enabled') && Filament::getTenant()) {
             $query->forTenant(Filament::getTenant()->getKey());
@@ -88,7 +88,7 @@ class ListPendingJobs extends Page implements HasTable
 
     public static function canAccess(array $parameters = []): bool
     {
-        return QueueJob::isSupported();
+        return resolve(QueueJob::class)::isSupported();
     }
 
     public function getSubNavigation(): array

@@ -65,7 +65,7 @@ it('returns null when command cannot be unserialized', function () {
 it('QueueJob forTenant scope filters by tenant id in payload', function () {
     $tenantId = 789;
 
-    $query = QueueJob::query()->forTenant($tenantId);
+    $query = resolve(QueueJob::class)::query()->forTenant($tenantId);
     $sql = $query->toSql();
 
     expect($sql)->toContain('payload');
@@ -75,7 +75,7 @@ it('QueueJob forTenant scope filters by tenant id in payload', function () {
 it('FailedJob forTenant scope filters by tenant id in payload', function () {
     $tenantId = 101;
 
-    $query = FailedJob::query()->forTenant($tenantId);
+    $query = resolve(FailedJob::class)::query()->forTenant($tenantId);
     $sql = $query->toSql();
 
     expect($sql)->toContain('payload');

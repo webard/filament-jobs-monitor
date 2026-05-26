@@ -29,7 +29,6 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use UnitEnum;
 
@@ -112,7 +111,7 @@ class QueueMonitorResource extends Resource
                     ])
                     ->visible(fn ($record): bool => $record->hasFailed())
                     ->action(function ($record, array $data): void {
-                        $failedJob = FailedJob::where('uuid', $record->job_id)->first();
+                        $failedJob = resolve(FailedJob::class)::where('uuid', $record->job_id)->first();
 
                         if (! $failedJob) {
                             Notification::make()
@@ -187,7 +186,7 @@ class QueueMonitorResource extends Resource
                         $failedCount = 0;
 
                         foreach ($failedRecords as $record) {
-                            $failedJob = FailedJob::where('uuid', $record->job_id)->first();
+                            $failedJob = resolve(FailedJob::class)::where('uuid', $record->job_id)->first();
 
                             if ($failedJob) {
                                 $uuids[] = $failedJob->uuid;
@@ -198,7 +197,7 @@ class QueueMonitorResource extends Resource
 
                         if (count($uuids) > 0) {
                             if ($delay > 0) {
-                                RetryFailedJobJob::dispatch($uuids)->delay(now()->addMinutes($delay));
+                                resolve(RetryFailedJobJob::class)::dispatch($uuids)->delay(now()->addMinutes($delay));
 
                                 Notification::make()
                                     ->title(__('filament-jobs-monitor::translations.bulk_retry_scheduled'))
@@ -240,9 +239,9 @@ class QueueMonitorResource extends Resource
                             ->minValue(0)
                             ->suffix(__('filament-jobs-monitor::translations.minutes')),
                     ])
-                    ->visible(fn (): bool => FailedJob::count() > 0)
+                    ->visible(fn (): bool => resolve(FailedJob::class)::count() > 0)
                     ->action(function (array $data): void {
-                        $failedJobsCount = FailedJob::count();
+                        $failedJobsCount = resolve(FailedJob::class)::count();
 
                         if ($failedJobsCount === 0) {
                             Notification::make()
@@ -257,7 +256,7 @@ class QueueMonitorResource extends Resource
                         $delay = (int) ($data['delay'] ?? 0);
 
                         if ($delay > 0) {
-                            RetryFailedJobJob::dispatch('all')->delay(now()->addMinutes($delay));
+                            resolve(RetryFailedJobJob::class)::dispatch('all')->delay(now()->addMinutes($delay));
 
                             Notification::make()
                                 ->title(__('filament-jobs-monitor::translations.retry_all_scheduled'))
@@ -284,7 +283,7 @@ class QueueMonitorResource extends Resource
                     ->modalDescription('This will permanently remove all queue monitor records.')
                     ->modalSubmitActionLabel('Yes, clear all')
                     ->action(function () {
-                        DB::table('queue_monitors')->truncate();
+                        resolve(QueueMonitor::class)::truncate();
 
                         Notification::make()
                             ->title('Queue monitor logs cleared')
@@ -382,7 +381,7 @@ class QueueMonitorResource extends Resource
             'index' => ListQueueMonitors::route('/'),
         ];
 
-        if (QueueJob::isSupported()) {
+        if (resolve(QueueJob::class)::isSupported()) {
             $pages['pending'] = ListPendingJobs::route('/pending');
         }
 
