@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class QueueJob extends Model
 {
-    protected $table = 'jobs';
-
     public $timestamps = false;
 
     protected $guarded = [];
@@ -21,6 +19,11 @@ class QueueJob extends Model
             'created_at' => 'datetime',
             'reserved_at' => 'datetime',
         ];
+    }
+
+    public function getTable()
+    {
+        return config('queue.connections.database.table', 'jobs');
     }
 
     public function getConnectionName(): ?string

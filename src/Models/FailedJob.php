@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class FailedJob extends Model
 {
-    protected $table = 'failed_jobs';
-
     public $timestamps = false;
 
     protected $guarded = [];
@@ -19,6 +17,11 @@ class FailedJob extends Model
             'payload' => 'array',
             'failed_at' => 'datetime',
         ];
+    }
+
+    public function getTable()
+    {
+        return config('queue.failed.table', 'failed_jobs');
     }
 
     public function getConnectionName(): ?string
