@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    @if(\Croustibat\FilamentJobsMonitor\Models\QueueJob::isSupported())
+    @if(resolve(\Croustibat\FilamentJobsMonitor\Models\QueueJob::class)::isSupported())
         {{ $this->table }}
     @else
         <x-filament::section>
