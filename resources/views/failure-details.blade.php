@@ -2,9 +2,22 @@
     use Illuminate\Support\Str;
 
     $frames = [];
+    $throwFrame = null;
     $rawTrace = $lastOccurrence?->exception;
 
     if (filled($rawTrace)) {
+        // String-cast exceptions start with "Class: message in /path/file.php:42"
+        // before the "Stack trace:" block — surface that as the throw location.
+        $parts = preg_split('/\r?\nStack trace:\r?\n/', $rawTrace, 2);
+
+        if (count($parts) === 2 && preg_match('/ in (.+?):(\d+)\s*$/', trim($parts[0]), $m)) {
+            $throwFrame = [
+                'file' => $m[1],
+                'line' => (int) $m[2],
+                'vendor' => str_contains($m[1], '/vendor/'),
+            ];
+        }
+
         foreach (preg_split('/\r?\n/', $rawTrace) as $line) {
             if (preg_match('/^#(\d+)\s+(.*?)\((\d+)\): (.*)$/', $line, $m)) {
                 $frames[] = [
@@ -73,14 +86,24 @@
             </span>
         </div>
 
-        @if (count($frames))
+        @if (count($frames) || $throwFrame)
             <div x-show="mode !== 'raw'" class="divide-y divide-gray-100 font-mono text-xs dark:divide-white/5">
+                @if ($throwFrame)
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-danger-50 dark:bg-danger-950">
+                        <span class="font-semibold text-danger-600 dark:text-danger-400">!</span>
+                        <span class="truncate font-medium text-gray-950 dark:text-white">{{ class_basename($group->exception_class) }}</span>
+                        <span class="ms-auto truncate text-gray-500 dark:text-gray-400" title="{{ $throwFrame['file'] }}:{{ $throwFrame['line'] }}">
+                            {{ $throwFrame['file'] }}<span class="text-gray-300 dark:text-gray-600">:</span><span class="text-danger-600 dark:text-danger-400">{{ $throwFrame['line'] }}</span>
+                        </span>
+                    </div>
+                @endif
+
                 @foreach ($frames as $frame)
                     <div
                         @if ($frame['vendor']) x-show="mode === 'all'" @endif
                         @class([
                             'flex items-center gap-2 px-3 py-1.5',
-                            'bg-danger-50 dark:bg-danger-500/10' => ! $frame['vendor'] && $loop->first,
+                            'bg-danger-50 dark:bg-danger-950' => ! $frame['vendor'] && $loop->first && ! $throwFrame,
                         ])
                     >
                         <span class="tabular-nums text-gray-400 dark:text-gray-500">#{{ $frame['index'] }}</span>

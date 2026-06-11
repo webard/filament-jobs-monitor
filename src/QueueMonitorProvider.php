@@ -146,7 +146,9 @@ class QueueMonitorProvider extends ServiceProvider
             if (self::supportsFailureTracking()) {
                 $attributes += [
                     'exception_class' => $exception::class,
-                    'exception' => mb_strcut($exception->getTraceAsString(), 0, 65535),
+                    // Full string cast: includes the throw location
+                    // ("Class: message in /path/file.php:42") before the trace.
+                    'exception' => mb_strcut((string) $exception, 0, 65535),
                 ];
 
                 if ($failed && ! $alreadyRecordedAsFailed) {

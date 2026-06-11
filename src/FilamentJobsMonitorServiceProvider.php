@@ -2,6 +2,8 @@
 
 namespace Croustibat\FilamentJobsMonitor;
 
+use Filament\Support\Assets\Css;
+use Filament\Support\Facades\FilamentAsset;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -24,5 +26,12 @@ class FilamentJobsMonitorServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         $this->app->singleton(FilamentJobsMonitorPlugin::class);
+    }
+
+    public function packageBooted(): void
+    {
+        FilamentAsset::register([
+            Css::make('filament-jobs-monitor-styles', __DIR__.'/../resources/dist/filament-jobs-monitor.css'),
+        ], 'croustibat/filament-jobs-monitor');
     }
 }

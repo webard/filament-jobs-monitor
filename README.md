@@ -93,11 +93,12 @@ It includes:
 - A detail slide-over per group with the stack trace of the last occurrence (app frames / all frames / raw toggle), the failed job payload rendered as a collapsible tree, and the most recent occurrences.
 - Actions to **mark a group resolved** (a new occurrence reopens it automatically), **reopen** it, or **retry all failed jobs** of the group.
 
-The page can be disabled with `'failures' => ['enabled' => false]`. Failure grouping requires the `add_failures_to_filament-jobs-monitor_table` migration — republish the migrations and migrate when upgrading:
+The page can be disabled with `'failures' => ['enabled' => false]`. Failure grouping requires the `add_failures_to_filament-jobs-monitor_table` migration — republish the migrations, migrate and publish the plugin assets when upgrading:
 
 ```bash
 php artisan vendor:publish --tag="filament-jobs-monitor-migrations"
 php artisan migrate
+php artisan filament:assets
 ```
 
 If the migration has not been run, the plugin keeps working as before and simply skips failure grouping.
