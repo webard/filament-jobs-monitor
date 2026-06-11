@@ -15,7 +15,10 @@ class FilamentJobsMonitorServiceProvider extends PackageServiceProvider
             ->hasViews()
             ->hasConfigFile()
             ->hasTranslations()
-            ->hasMigration('create_filament-jobs-monitor_table');
+            ->hasMigrations([
+                'create_filament-jobs-monitor_table',
+                'add_failures_to_filament-jobs-monitor_table',
+            ]);
     }
 
     public function packageRegistered(): void

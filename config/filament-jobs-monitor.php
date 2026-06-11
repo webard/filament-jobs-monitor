@@ -24,6 +24,17 @@ return [
          */
         'sub_navigation_position' => null,
     ],
+    'failures' => [
+        /**
+         * Enable the "Failures" page: failed jobs grouped by signature
+         * (exception class + job class + normalised message).
+         */
+        'enabled' => true,
+        /**
+         * Table polling interval (null to disable).
+         */
+        'polling_interval' => '10s',
+    ],
     'pruning' => [
         'enabled' => true,
         'retention_days' => 7,

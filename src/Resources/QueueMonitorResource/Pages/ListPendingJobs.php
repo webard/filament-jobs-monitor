@@ -98,6 +98,10 @@ class ListPendingJobs extends Page implements HasTable
             ListPendingJobs::class,
         ];
 
+        if (config('filament-jobs-monitor.failures.enabled', true)) {
+            $items[] = ListFailures::class;
+        }
+
         return $this->generateNavigationItems($items);
     }
 }

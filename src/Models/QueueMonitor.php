@@ -32,6 +32,9 @@ class QueueMonitor extends Model
         'attempt',
         'progress',
         'exception_message',
+        'exception_class',
+        'exception',
+        'failure_signature',
         'tenant_id',
     ];
 
