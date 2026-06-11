@@ -145,6 +145,24 @@ it('captures exception class, trace and signature when a monitored job fails', f
         ->and($group->occurrences_count)->toBe(1);
 });
 
+it('counts a failure once when JobExceptionOccurred and JobFailed both fire', function () {
+    $job = Mockery::mock(JobContract::class);
+    $job->shouldReceive('payload')->andReturn(['uuid' => 'job-uuid-2']);
+    $job->shouldReceive('resolveName')->andReturn('App\Jobs\FooJob');
+    $job->shouldReceive('getQueue')->andReturn('default');
+    $job->shouldReceive('attempts')->andReturn(1);
+
+    $started = new ReflectionMethod(QueueMonitorProvider::class, 'jobStarted');
+    $started->invoke(null, $job);
+
+    $finished = new ReflectionMethod(QueueMonitorProvider::class, 'jobFinished');
+    // Simulates Laravel firing Queue::exceptionOccurred then Queue::failing.
+    $finished->invoke(null, $job, true, new RuntimeException('Boom'));
+    $finished->invoke(null, $job, true, new RuntimeException('Boom'));
+
+    expect(FailureGroup::firstOrFail()->occurrences_count)->toBe(1);
+});
+
 it('renders the failure details view with stack trace, payload and occurrences', function () {
     $group = FailureGroup::recordFailure('RuntimeException', 'App\Jobs\FooJob', 'payments', 'Boom for id 42');
 

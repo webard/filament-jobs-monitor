@@ -128,6 +128,10 @@ class QueueMonitorProvider extends ServiceProvider
             return;
         }
 
+        // Laravel fires both JobExceptionOccurred and JobFailed for the same
+        // failure — only count the occurrence once per monitor row.
+        $alreadyRecordedAsFailed = $monitor->failed && $monitor->finished_at !== null;
+
         $attributes = [
             'progress' => 100,
             'finished_at' => now(),
@@ -145,7 +149,7 @@ class QueueMonitorProvider extends ServiceProvider
                     'exception' => mb_strcut($exception->getTraceAsString(), 0, 65535),
                 ];
 
-                if ($failed) {
+                if ($failed && ! $alreadyRecordedAsFailed) {
                     try {
                         $group = resolve(FailureGroup::class)::recordFailure(
                             exceptionClass: $exception::class,
