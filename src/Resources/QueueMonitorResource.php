@@ -8,8 +8,10 @@ use Croustibat\FilamentJobsMonitor\Jobs\RetryFailedJobJob;
 use Croustibat\FilamentJobsMonitor\Models\FailedJob;
 use Croustibat\FilamentJobsMonitor\Models\QueueJob;
 use Croustibat\FilamentJobsMonitor\Models\QueueMonitor;
+use Croustibat\FilamentJobsMonitor\Resources\QueueMonitorResource\Pages\ListFailures;
 use Croustibat\FilamentJobsMonitor\Resources\QueueMonitorResource\Pages\ListPendingJobs;
 use Croustibat\FilamentJobsMonitor\Resources\QueueMonitorResource\Pages\ListQueueMonitors;
+use Croustibat\FilamentJobsMonitor\Resources\QueueMonitorResource\Widgets\FailureStatsOverview;
 use Croustibat\FilamentJobsMonitor\Resources\QueueMonitorResource\Widgets\QueueStatsOverview;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -385,6 +387,10 @@ class QueueMonitorResource extends Resource
             $pages['pending'] = ListPendingJobs::route('/pending');
         }
 
+        if (config('filament-jobs-monitor.failures.enabled', true)) {
+            $pages['failures'] = ListFailures::route('/failures');
+        }
+
         return $pages;
     }
 
@@ -392,6 +398,7 @@ class QueueMonitorResource extends Resource
     {
         return [
             QueueStatsOverview::class,
+            FailureStatsOverview::class,
         ];
     }
 }

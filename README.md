@@ -61,6 +61,10 @@ return [
         'cluster' => null,
         'sub_navigation_position' => null, // SubNavigationPosition::Top or ::Sidebar
     ],
+    'failures' => [
+        'enabled' => true,
+        'polling_interval' => '10s',
+    ],
     'pruning' => [
         'enabled' => true,
         'retention_days' => 7,
@@ -77,6 +81,27 @@ return [
 ```
 
 **NOTE:** Since there isn't a universal way to retrieve all used queues, it's necessary to define them to obtain all pending jobs. 
+
+### Failures page
+
+The **Failures** page groups failed jobs by signature — exception class, job class and normalised message (dynamic values such as ids, uuids and quoted strings are stripped) — so a thousand occurrences of the same error show up as a single row instead of a thousand, Sentry-style.
+
+It includes:
+
+- A stats overview: open groups, failures in the last hour, 24h failure rate and groups resolved in the last 7 days.
+- A table of failure groups with occurrence counts, last-seen time and a 7-day sparkline per group, with **Open / Resolved / All** tabs and filters by exception class and queue.
+- A detail slide-over per group with the stack trace of the last occurrence (app frames / all frames / raw toggle), the failed job payload rendered as a collapsible tree, and the most recent occurrences.
+- Actions to **mark a group resolved** (a new occurrence reopens it automatically), **reopen** it, or **retry all failed jobs** of the group.
+
+The page can be disabled with `'failures' => ['enabled' => false]`. Failure grouping requires the `add_failures_to_filament-jobs-monitor_table` migration — republish the migrations, migrate and publish the plugin assets when upgrading:
+
+```bash
+php artisan vendor:publish --tag="filament-jobs-monitor-migrations"
+php artisan migrate
+php artisan filament:assets
+```
+
+If the migration has not been run, the plugin keeps working as before and simply skips failure grouping.
 
 ### Extending Model
 
