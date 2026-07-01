@@ -5,6 +5,7 @@ namespace Croustibat\FilamentJobsMonitor;
 use Croustibat\FilamentJobsMonitor\Models\FailureGroup;
 use Croustibat\FilamentJobsMonitor\Models\QueueMonitor;
 use Illuminate\Contracts\Queue\Job as JobContract;
+use Illuminate\Events\CallQueuedListener;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
@@ -64,6 +65,12 @@ class QueueMonitorProvider extends ServiceProvider
 
         $payload = $job->payload();
 
+        // Try and get the tenantId from the payload key.
+        $payloadKey = config('filament-jobs-monitor.tenancy.payload_key', 'tenant_id');
+        if (isset($payload[$payloadKey])) {
+            return $payload[$payloadKey];
+        }
+
         if (! isset($payload['data']['command'])) {
             return null;
         }
@@ -71,7 +78,20 @@ class QueueMonitorProvider extends ServiceProvider
         try {
             $command = unserialize($payload['data']['command']);
 
-            return $command->tenantId ?? null;
+            // Regular job: check for tenantId property on the command itself
+            if (property_exists($command, 'tenantId')) {
+                return $command->tenantId;
+            }
+
+            // Queued event listener: extract tenantId from the event passed to the listener
+            if ($command instanceof CallQueuedListener) {
+                $event = $command->data[0] ?? null;
+                if ($event && property_exists($event, 'tenantId')) {
+                    return $event->tenantId;
+                }
+            }
+
+            return null;
         } catch (\Throwable) {
             return null;
         }
